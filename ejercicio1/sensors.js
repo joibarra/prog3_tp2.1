@@ -1,4 +1,30 @@
-class Sensor {}
+class Sensor {
+    constructor(id, name, type, value, unit, updated_at) {
+        this.id = id;
+        this.name = name;
+        this.type = type;
+        this.value = value;
+        this.unit = unit;
+        this.updated_at = updated_at;
+      }
+    
+      //setter que actualiza el valor del sensor y la marca de tiempo
+      set updateValue(newValue) {
+        if (this.isValidType(newValue)) {
+          this.value = newValue;
+          this.updated_at = new Date().toISOString();
+        } else {
+          console.error(`Tipo de sensor no válido: ${newValue}`);
+        }
+      }
+      //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
+    
+      // Método que va a verificar si el tipo es válido
+      isValidType(newValue) {
+        const allowedTypes = ["temperature", "humidity", "pressure"];
+        return allowedTypes.includes(newValue);
+      }  
+}
 
 class SensorManager {
     constructor() {
@@ -33,7 +59,30 @@ class SensorManager {
         }
     }
 
-    async loadSensors(url) {}
+    async loadSensors(jsonFilePath) {
+        try {
+          // Realizamos una solicitud para obtener los datos del archivo local
+          const response = await fetch(jsonFilePath);
+          const sensorsData = await response.json();
+           // Crea instancias de Sensor y agrega al arreglo
+      this.sensors = sensorsData.map((sensorData) => {
+        return new Sensor(
+          sensorData.id,
+          sensorData.name,
+          sensorData.type,
+          sensorData.value,
+          sensorData.unit,
+          sensorData.updated_at
+        );
+      });
+      // Renderiza los sensores 
+      this.render();
+    } catch (error) {
+      console.error('Error al cargar los sensores:', error);
+    }
+  }
+
+     // Implementa el método render para mostrar los sensores en la página HTML 
 
     render() {
         const container = document.getElementById("sensor-container");
@@ -85,6 +134,7 @@ class SensorManager {
     }
 }
 
+//uso de ejemplo
 const monitor = new SensorManager();
 
 monitor.loadSensors("sensors.json");
