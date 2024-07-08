@@ -6,12 +6,45 @@ class Currency {
 }
 
 class CurrencyConverter {
-    constructor() {}
+    constructor(apiUrl) {
+        this.apiUrl = apiUrl;
+        this.currencies = []; // Almacena instancias de la clase Currency
+    }
 
-    getCurrencies(apiUrl) {}
+    async getCurrencies() {
+        try {
+            const response = await fetch(`${this.apiUrl}/currencies`);
+            const data = await response.json();
 
-    convertCurrency(amount, fromCurrency, toCurrency) {}
+            // Crea instancias de Currency y almacenarlas en this.currencies
+            this.currencies = Object.entries(data).map(([code, name]) => new Currency(code, name));
+        } catch (error) {
+            console.error("Error al obtener las monedas:", error);
+        }
+    }
+
+    async convertCurrency(amount, fromCurrency, toCurrency) {
+        if (fromCurrency.code === toCurrency.code) {
+            // Misma moneda, no es necesario hacer la conversión
+            return amount;
+        }
+
+        try {
+            const response = await fetch(`${this.apiUrl}/latest?amount=${amount}&from=${fromCurrency.code}&to=${toCurrency.code}`);
+            const data = await response.json();
+
+            // Obtiene el monto convertido
+            return data.rates[toCurrency.code] * amount;
+        } catch (error) {
+            console.error("Error al realizar la conversión:", error);
+            return null;
+        }
+    }
 }
+
+// Crear una instancia de CurrencyConverter con la URL de Frankfurter
+const converter = new CurrencyConverter("https://api.frankfurter.app");
+
 
 document.addEventListener("DOMContentLoaded", async () => {
     const form = document.getElementById("conversion-form");
